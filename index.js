@@ -14,7 +14,8 @@ const publish = (
   async function publishMessage() {
     const dataBuffer = Buffer.from(JSON.stringify(data));
 
-    const messageId = await pubsub.topic(`${topicName}-${source}`).publish(dataBuffer);
+    const sourceStr = source ? `-${source}` : '';
+    const messageId = await pubsub.topic(`${topicName}${sourceStr}`).publish(dataBuffer);
     return messageId;
   }
 
@@ -54,7 +55,7 @@ exports.manage = async (event, context, callback) => {
         });
    
         await Promise.all([
-          publish('ex-manage', { domain, action, command, payload: { ...payload, id: docRef.id }, user, socketId }),
+          publish('ex-manage', null, { domain, action, command, payload: { ...payload, id: docRef.id }, user, socketId }),
           publish('ex-gateway', source, { domain, action, command, payload: { ...payload, id: docRef.id }, user, socketId })
         ]);
         callback();
