@@ -149,4 +149,5 @@ exports.manage = async (event, context, callback) => {
         callback(0);
       }
       break;
+    }
 };
