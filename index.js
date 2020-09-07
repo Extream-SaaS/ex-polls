@@ -12,9 +12,9 @@ const publish = (
   const pubsub = new PubSub({projectId});
 
   async function publishMessage() {
-    const dataBuffer = Buffer.from(JSON.stringify(data));
+    const sourceStr = data ? `-${source}` : '';
+    const dataBuffer = Buffer.from(JSON.stringify(!data ? source : data));
 
-    const sourceStr = source ? `-${source}` : '';
     const messageId = await pubsub.topic(`${topicName}${sourceStr}`).publish(dataBuffer);
     return messageId;
   }
@@ -55,7 +55,7 @@ exports.manage = async (event, context, callback) => {
         });
    
         await Promise.all([
-          publish('ex-manage', null, { domain, action, command, payload: { ...payload, id: docRef.id }, user, socketId }),
+          publish('ex-manage', { domain, action, command, payload: { ...payload, id: docRef.id }, user, socketId }),
           publish('ex-gateway', source, { domain, action, command, payload: { ...payload, id: docRef.id }, user, socketId })
         ]);
         callback();
