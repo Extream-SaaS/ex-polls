@@ -102,13 +102,27 @@ exports.manage = async (event, context, callback) => {
     case 'read':
       try {
         const docRef = db.collection('polls').doc(payload.id);
-    
         const poll = await docRef.get();
 
         if (!poll.exists) {
           throw new Error('item not found');
         }
-    
+
+        let data = poll.data();
+        data.questions = {};
+
+        const questionsRef = docRef.collection('questions');
+        const questions = await questionsRef.get();
+        questions.forEach(async (question) => {
+          data.questions[question.id] = question.data();
+          const answersRef = questionsRef.doc(question.id).collection('answers');
+          const answers = await answersRef.get();
+          
+          data.questions[question.id].answers = {};
+          answers.forEach(async (answer) => {
+            data.questions[question.id].answers[answer.id] = answer.data();
+          });
+        });
         await publish('ex-gateway', source, { domain, action, command, payload: poll.data(), user, socketId });
         callback();
       } catch (error) {
@@ -131,9 +145,10 @@ exports.manage = async (event, context, callback) => {
         const questionsRef = docRef.collection('questions');
         const questions = await questionsRef.get();
         questions.forEach(async (question) => {
+          data.questions[question.id] = question.data();
           const answersRef = questionsRef.doc(question.id).collection('answers');
           const answers = await answersRef.get();
-          data.questions[question.id] = question.data();
+          
           data.questions[question.id].answers = {};
           answers.forEach(async (answer) => {
             data.questions[question.id].answers[answer.id] = answer.data();
