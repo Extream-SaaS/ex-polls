@@ -123,7 +123,7 @@ exports.manage = async (event, context, callback) => {
             data.questions[question.id].answers[answer.id] = answer.data();
           });
         });
-        await publish('ex-gateway', source, { domain, action, command, payload: poll.data(), user, socketId });
+        await publish('ex-gateway', source, { domain, action, command, payload: data, user, socketId });
         callback();
       } catch (error) {
         await publish('ex-gateway', source, { error: error.message, domain, action, command, payload, user, socketId });
