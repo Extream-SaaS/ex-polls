@@ -69,7 +69,7 @@ exports.manage = async (event, context, callback) => {
           delete question.answers;
           await questionRef.set(question);
         });
-   
+
         await Promise.all([
           publish('ex-manage', { domain, action, command, payload: { ...payload, id: docRef.id }, user, socketId }),
           publish('ex-gateway', source, { domain, action, command, payload: { ...payload, id: docRef.id }, user, socketId })
@@ -113,14 +113,14 @@ exports.manage = async (event, context, callback) => {
 
         const questionsRef = docRef.collection('questions');
         const questions = await questionsRef.get();
-        questions.forEach(async (question) => {
+        for (const question of questions) {
           data.questions[question.id] = question.data();
           const answersRef = questionsRef.doc(question.id).collection('answers');
           const answers = await answersRef.get();
           console.log('getting answers');
-          
+
           data.questions[question.id].answers = {};
-          answers.forEach(async (answer) => {
+          answers.forEach((answer) => {
             console.log('answer retrieved', answer.data());
             data.questions[question.id].answers[answer.id] = answer.data();
           });
@@ -128,13 +128,13 @@ exports.manage = async (event, context, callback) => {
           const responsesRef = questionsRef.doc(question.id).collection('responses');
           const responses = await responsesRef.get();
           console.log('getting responses');
-          
+
           data.questions[question.id].responses = {};
-          responses.forEach(async (response) => {
+          responses.forEach((response) => {
             console.log('response retrieved', response.data());
             data.questions[question.id].responses[response.id] = response.data();
           });
-        });
+        }
         await publish('ex-gateway', source, { domain, action, command, payload: data, user, socketId });
         callback();
       } catch (error) {
@@ -156,14 +156,14 @@ exports.manage = async (event, context, callback) => {
 
         const questionsRef = docRef.collection('questions');
         const questions = await questionsRef.get();
-        questions.forEach(async (question) => {
+        for (const question of questions) {
           data.questions[question.id] = { id: question.id, ...question.data() };
           const answersRef = questionsRef.doc(question.id).collection('answers');
           const answers = await answersRef.get();
           console.log('getting answers');
-          
+
           data.questions[question.id].answers = {};
-          answers.forEach(async (answer) => {
+          answers.forEach((answer) => {
             console.log('answer retrieved', answer.data());
             data.questions[question.id].answers[answer.id] = { id: answer.id, ...answer.data() };
           });
@@ -171,13 +171,13 @@ exports.manage = async (event, context, callback) => {
           const responsesRef = questionsRef.doc(question.id).collection('responses');
           const responses = await responsesRef.get();
           console.log('getting responses');
-          
+
           data.questions[question.id].responses = {};
-          responses.forEach(async (response) => {
+          responses.forEach((response) => {
             console.log('response retrieved', response.data());
             data.questions[question.id].responses[response.id] = { id: response.id, ...response.data() };
           });
-        });
+        }
 
         await publish('ex-gateway', source, { domain, action, command, payload: { id: payload.id, ...data }, user, socketId });
         callback();
