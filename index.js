@@ -126,6 +126,19 @@ exports.manage = async (event, context, callback) => {
         }
 
         let data = poll.data();
+        data.questions = {};
+
+        const questionsRef = docRef.collection('questions');
+        const questions = await questionsRef.get();
+        questions.forEach(async (question) => {
+          const answersRef = questionsRef.doc(question.id).collection('answers');
+          const answers = await answersRef.get();
+          data.questions[question.id] = question.data();
+          data.questions[question.id].answers = {};
+          answers.forEach(async (answer) => {
+            data.questions[question.id].answers[answer.id] = answer.data();
+          });
+        });
 
         await publish('ex-gateway', source, { domain, action, command, payload: { id: payload.id, ...data }, user, socketId });
         callback();
