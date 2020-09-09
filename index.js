@@ -117,9 +117,11 @@ exports.manage = async (event, context, callback) => {
           data.questions[question.id] = question.data();
           const answersRef = questionsRef.doc(question.id).collection('answers');
           const answers = await answersRef.get();
+          console.log('getting answers');
           
           data.questions[question.id].answers = {};
           answers.forEach(async (answer) => {
+            console.log('answer retrieved', answer);
             data.questions[question.id].answers[answer.id] = answer.data();
           });
         });
