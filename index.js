@@ -47,11 +47,27 @@ exports.manage = async (event, context, callback) => {
     case 'create':
       try {
         const docRef = db.collection('polls').doc();
+
+        const questionCol = docRef.collection('questions');
+
+        const questions = payload.configuration.questions;
+        delete payload.configuration.questions;
     
         await docRef.set({
           ...payload,
           addedBy: user.id,
           addedAt: Firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        questions.forEach(async (question) => {
+          const questionRef = questionCol.doc();
+          const answerCol = questionRef.collection('answers');
+          question.answers.forEach(async (answer) => {
+            const answerRef = answerCol.doc();
+            await answerRef.set(answer);
+          });
+          delete question.answers;
+          await questionRef.set(question);
         });
    
         await Promise.all([
@@ -121,7 +137,6 @@ exports.manage = async (event, context, callback) => {
     case 'answer':
       // user answers an item
       try {
-        let data = {};
         if (payload.data.instance) {
           const docRef = db.collection('polls').doc(payload.id);
           const poll = await docRef.get();
@@ -130,7 +145,7 @@ exports.manage = async (event, context, callback) => {
             throw new Error('item not found');
           }
 
-          let data = poll.data(payload);
+          payload.data = poll.data(payload);
 
           const questionRef = docRef.collection('questions').doc(payload.data.question);
           const answerRef = questionRef.collection('responses').doc(payload.data.answer);
