@@ -51,7 +51,9 @@ exports.manage = async (event, context, callback) => {
         const questionCol = docRef.collection('questions');
 
         const questions = payload.configuration.questions;
-        delete payload.configuration.questions;
+        if (questions) {
+          delete payload.configuration.questions;
+        }
     
         await docRef.set({
           ...payload,
@@ -59,16 +61,18 @@ exports.manage = async (event, context, callback) => {
           addedAt: Firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
-        questions.forEach(async (question) => {
-          const questionRef = questionCol.doc();
-          const answerCol = questionRef.collection('answers');
-          question.answers.forEach(async (answer) => {
-            const answerRef = answerCol.doc();
-            await answerRef.set(answer);
+        if (questions) {
+          questions.forEach(async (question) => {
+            const questionRef = questionCol.doc();
+            const answerCol = questionRef.collection('answers');
+            question.answers.forEach(async (answer) => {
+              const answerRef = answerCol.doc();
+              await answerRef.set(answer);
+            });
+            delete question.answers;
+            await questionRef.set(question);
           });
-          delete question.answers;
-          await questionRef.set(question);
-        });
+        }
    
         await Promise.all([
           publish('ex-manage', { domain, action, command, payload: { ...payload, id: docRef.id }, user, socketId }),
@@ -98,6 +102,9 @@ exports.manage = async (event, context, callback) => {
         await publish('ex-gateway', source, { error: error.message, domain, action, command, payload, user, socketId });
         callback(0);
       }
+      break;
+    case 'add':
+      // TODO: [EX-69] Add a question to an existing poll - an update but targeted for a new question pushed to the forestore array
       break;
     case 'read':
       try {
