@@ -104,7 +104,39 @@ exports.manage = async (event, context, callback) => {
       }
       break;
     case 'add':
-      // TODO: [EX-69] Add a question to an existing poll - an update but targeted for a new question pushed to the forestore array
+      try {
+        const docRef = db.collection('polls').doc(payload.id);
+
+        const questionCol = docRef.collection('questions');
+
+        const question = payload.data;
+
+        const answers = [];
+
+        const questionRef = questionCol.doc();
+        const answerCol = questionRef.collection('answers');
+        question.answers.forEach(async (answer) => {
+          const answerRef = answerCol.doc();
+          await answerRef.set(answer);
+          answers.push({
+            ...answer,
+            id: answerRef.id,
+          });
+        });
+        delete question.answers;
+        await questionRef.set(question);
+
+        const response = {
+          id: payload.id,
+          data: { ...question, id: questionRef.id },
+        };
+
+        await publish('ex-gateway', source, { domain, action, command, payload: response, user, socketId });
+        callback();
+      } catch (error) {
+        await publish('ex-gateway', source, { error: error.message, domain, action, command, payload, user, socketId });
+        callback(0);
+      }
       break;
     case 'read':
       try {
@@ -204,16 +236,23 @@ exports.manage = async (event, context, callback) => {
             throw new Error('item not found');
           }
 
-          payload.data = poll.data(payload);
-
           const questionRef = docRef.collection('questions').doc(payload.data.question);
           const answerRef = questionRef.collection('responses').doc(payload.data.answer);
           await answerRef.set({
             responses: firebase.firestore.FieldValue.increment(1),
             respondants: admin.firestore.FieldValue.arrayUnion(user.id)
           }, { merge: true });
-          const question = await questioneRef.get();
-          payload.data.question = question.data();
+          const responsesRef = questionRef.collection('responses');
+          const responses = await responsesRef.get();
+          payload.data = {
+            id: questionRef.id,
+          };
+          payload.data.responses = {};
+          responses.forEach((response) => {
+            console.log('response retrieved', response.data());
+            const { responses } = response.data();
+            payload.responses[response.id] = responses;
+          });
         } else {
           throw new Error('question and answer are required');
         }
