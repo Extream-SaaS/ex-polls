@@ -124,11 +124,15 @@ exports.manage = async (event, context, callback) => {
           });
         });
         delete question.answers;
-        await questionRef.set(question);
+        await questionRef.set({
+          ...question,
+          addedBy: user.id,
+          addedAt: Firestore.FieldValue.serverTimestamp()
+        });
 
         const response = {
           id: payload.id,
-          data: { ...question, id: questionRef.id },
+          data: { ...question, id: questionRef.id, answers },
         };
 
         await publish('ex-gateway', source, { domain, action, command, payload: response, user, socketId });
