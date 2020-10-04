@@ -115,20 +115,23 @@ exports.manage = async (event, context, callback) => {
 
         const questionRef = questionCol.doc();
         const answerCol = questionRef.collection('answers');
-        question.answers.forEach(async (answer) => {
+        const answerSet = [];
+        question.answers.forEach((answer) => {
           const answerRef = answerCol.doc();
-          await answerRef.set(answer);
+          answerSet.push(answerRef.set(answer));
           answers.push({
             ...answer,
             id: answerRef.id,
           });
         });
         delete question.answers;
-        await questionRef.set({
+        answerSet.push(questionRef.set({
           ...question,
           addedBy: user.id,
           addedAt: Firestore.FieldValue.serverTimestamp()
-        });
+        }));
+
+        await Promise.all(answerSet);
 
         const response = {
           id: payload.id,
