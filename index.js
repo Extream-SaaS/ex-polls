@@ -206,30 +206,31 @@ exports.manage = async (event, context, callback) => {
         data.questions = {};
 
         const questionsRef = docRef.collection('questions');
+        console.log('====== start getting questions');
         const questions = await questionsRef.get();
         for (const question of questions.docs) {
           data.questions[question.id] = { id: question.id, ...question.data() };
           const answersRef = questionsRef.doc(question.id).collection('answers');
           const answers = await answersRef.get();
-          console.log('getting answers');
+          console.log('====== getting answers');
 
           data.questions[question.id].answers = {};
           answers.forEach((answer) => {
-            console.log('answer retrieved', answer.data());
+            console.log('====== answer retrieved', answer.data());
             data.questions[question.id].answers[answer.id] = { id: answer.id, ...answer.data() };
           });
 
           const responsesRef = questionsRef.doc(question.id).collection('responses');
           const responses = await responsesRef.get();
-          console.log('getting responses');
+          console.log('====== getting responses');
 
           data.questions[question.id].responses = {};
           responses.forEach((response) => {
-            console.log('response retrieved', response.data());
+            console.log('====== response retrieved', response.data());
             data.questions[question.id].responses[response.id] = { id: response.id, ...response.data() };
           });
         }
-
+        console.log('====== sending response');
         await publish('ex-gateway', source, { domain, action, command, payload: { id: payload.id, ...data }, user, socketId });
         callback();
       } catch (error) {
