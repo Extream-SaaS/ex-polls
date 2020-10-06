@@ -43,6 +43,7 @@ exports.manage = async (event, context, callback) => {
   if (message.payload.end_date) {
     message.payload.end_date = Firestore.Timestamp.fromDate(new Date(Date.parse(message.payload.end_date)));
   }
+  console.log('incoming command', domain, action, command);
   switch (command) {
     case 'create':
       try {
