@@ -206,6 +206,7 @@ exports.manage = async (event, context, callback) => {
 
         const questionsRef = docRef.collection('questions');
         const questions = await questionsRef.get();
+        console.log('questions', questions);
         for (const question of questions) {
           data.questions[question.id] = { id: question.id, ...question.data() };
           const answersRef = questionsRef.doc(question.id).collection('answers');
