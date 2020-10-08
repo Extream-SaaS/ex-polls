@@ -110,6 +110,8 @@ exports.manage = async (event, context, callback) => {
       try {
         const docRef = db.collection('polls').doc(payload.id);
 
+        const poll = await docRef.get();
+
         const questionCol = docRef.collection('questions');
 
         const question = payload.data;
@@ -138,7 +140,7 @@ exports.manage = async (event, context, callback) => {
 
         const response = {
           id: payload.id,
-          data: { ...question, id: questionRef.id, answers },
+          data: { poll, question, id: questionRef.id, answers },
         };
 
         await publish('ex-gateway', source, { domain, action, command, payload: response, user, socketId });
