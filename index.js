@@ -244,7 +244,7 @@ exports.manage = async (event, context, callback) => {
     case 'answer':
       // user answers an item
       try {
-        if (payload.data.instance) {
+        if (payload.data.question && payload.data.answer) {
           const docRef = db.collection('polls').doc(payload.id);
           const poll = await docRef.get();
 
