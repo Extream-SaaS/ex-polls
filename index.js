@@ -255,7 +255,7 @@ exports.manage = async (event, context, callback) => {
           const questionRef = docRef.collection('questions').doc(payload.data.question);
           const answerRef = questionRef.collection('responses').doc(payload.data.answer);
           await answerRef.set({
-            responses: Firestore.FieldValue.increment(1),
+            responses: admin.firestore.FieldValue.increment(1),
             respondants: admin.firestore.FieldValue.arrayUnion(user.id)
           }, { merge: true });
           const responsesRef = questionRef.collection('responses');
