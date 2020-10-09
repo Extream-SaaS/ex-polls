@@ -244,35 +244,34 @@ exports.manage = async (event, context, callback) => {
     case 'answer':
       // user answers an item
       try {
-        if (payload.data.question && payload.data.answer) {
-          const docRef = db.collection('polls').doc(payload.id);
-          const poll = await docRef.get();
-
-          if (!poll.exists) {
-            throw new Error('item not found');
-          }
-
-          const questionRef = docRef.collection('questions').doc(payload.data.question);
-          const answerRef = questionRef.collection('responses').doc(payload.data.answer);
-          await answerRef.set({
-            responses: admin.firestore.FieldValue.increment(1),
-            respondants: admin.firestore.FieldValue.arrayUnion(user.id)
-          }, { merge: true });
-          const responsesRef = questionRef.collection('responses');
-          const responses = await responsesRef.get();
-          payload.data = {
-            id: questionRef.id,
-          };
-          payload.data.responses = {};
-          responses.forEach((response) => {
-            console.log('response retrieved', response.data());
-            const { responses } = response.data();
-            payload.data.responses[response.id] = responses;
-          });
-        } else {
+        if (!payload.data.question || !payload.data.answer) {
           throw new Error('question and answer are required');
         }
-        await publish('ex-gateway', source, { domain, action, command, payload: { ...payload }, user, socketId });
+        const docRef = db.collection('polls').doc(payload.id);
+        const poll = await docRef.get();
+
+        if (!poll.exists) {
+          throw new Error('item not found');
+        }
+
+        const questionRef = docRef.collection('questions').doc(payload.data.question);
+        const answerRef = questionRef.collection('responses').doc(payload.data.answer);
+        await answerRef.set({
+          responses: admin.firestore.FieldValue.increment(1),
+          respondants: admin.firestore.FieldValue.arrayUnion(user.id)
+        }, { merge: true });
+        const responsesRef = questionRef.collection('responses');
+        const responses = await responsesRef.get();
+        payload.data = {
+          id: questionRef.id,
+        };
+        payload.data.responses = {};
+        responses.forEach((response) => {
+          console.log('response retrieved', response.data());
+          const { responses } = response.data();
+          payload.data.responses[response.id] = responses;
+        });
+        await publish('ex-gateway', source, { domain, action, command, payload, user, socketId });
         callback();
       } catch (error) {
         console.log(error);
