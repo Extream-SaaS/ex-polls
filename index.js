@@ -267,7 +267,7 @@ exports.manage = async (event, context, callback) => {
           responses.forEach((response) => {
             console.log('response retrieved', response.data());
             const { responses } = response.data();
-            payload.responses[response.id] = responses;
+            payload.data.responses[response.id] = responses;
           });
         } else {
           throw new Error('question and answer are required');
