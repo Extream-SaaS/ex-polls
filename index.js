@@ -244,7 +244,7 @@ exports.manage = async (event, context, callback) => {
     case 'answer':
       // user answers an item
       try {
-        if (payload.data.instance) {
+        if (payload.data.question && payload.data.answer) {
           const docRef = db.collection('polls').doc(payload.id);
           const poll = await docRef.get();
 
@@ -255,7 +255,7 @@ exports.manage = async (event, context, callback) => {
           const questionRef = docRef.collection('questions').doc(payload.data.question);
           const answerRef = questionRef.collection('responses').doc(payload.data.answer);
           await answerRef.set({
-            responses: firebase.firestore.FieldValue.increment(1),
+            responses: admin.firestore.FieldValue.increment(1),
             respondants: admin.firestore.FieldValue.arrayUnion(user.id)
           }, { merge: true });
           const responsesRef = questionRef.collection('responses');
@@ -267,7 +267,7 @@ exports.manage = async (event, context, callback) => {
           responses.forEach((response) => {
             console.log('response retrieved', response.data());
             const { responses } = response.data();
-            payload.responses[response.id] = responses;
+            payload.data.responses[response.id] = responses;
           });
         } else {
           throw new Error('question and answer are required');
