@@ -140,7 +140,7 @@ exports.manage = async (event, context, callback) => {
 
         const response = {
           id: payload.id,
-          data: { poll: poll.data(), question, id: questionRef.id, answers },
+          data: { poll: poll.data(), question, id: questionRef.id, answers, responses: {} },
         };
 
         await publish('ex-gateway', source, { domain, action, command, payload: response, user, socketId });
