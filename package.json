@@ -1,6 +1,6 @@
 {
   "name": "ex-polls",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Polls and questionnaires",
   "main": "index.js",
   "scripts": {
