@@ -89,6 +89,11 @@ exports.manage = async (event, context, callback) => {
     case 'update':
       try {
         const docRef = db.collection('polls').doc(payload.id);
+
+        const questions = payload.configuration.questions;
+        if (questions) {
+          delete payload.configuration.questions;
+        }
     
         await docRef.set({
           ...payload,
@@ -97,6 +102,19 @@ exports.manage = async (event, context, callback) => {
         }, {
           merge: true
         });
+
+        if (questions) {
+          questions.forEach(async (question) => {
+            const questionRef = questionCol.doc();
+            const answerCol = questionRef.collection('answers');
+            question.answers.forEach(async (answer) => {
+              const answerRef = answerCol.doc();
+              await answerRef.set(answer);
+            });
+            delete question.answers;
+            await questionRef.set(question);
+          });
+        }
     
         await publish('ex-gateway', source, { domain, action, command, payload: { ...payload }, user, socketId });
         callback();
