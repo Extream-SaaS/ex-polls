@@ -90,6 +90,8 @@ exports.manage = async (event, context, callback) => {
       try {
         const docRef = db.collection('polls').doc(payload.id);
 
+        const questionCol = docRef.collection('questions');
+
         const questions = payload.configuration.questions;
         if (questions) {
           delete payload.configuration.questions;
