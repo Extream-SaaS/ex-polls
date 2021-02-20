@@ -114,6 +114,7 @@ exports.manage = async (event, context, callback) => {
             } else {
               questionRef = questionCol.doc();
             }
+            const answerArr = [];
             const answerCol = questionRef.collection('answers');
             question.answers.forEach(async (answer) => {
               let answerRef;
@@ -122,16 +123,16 @@ exports.manage = async (event, context, callback) => {
               } else {
                 answerRef = answerCol.doc();
               }
-              await answerRef.set(answer, {
+              answerArr.push(answerRef.set(answer, {
                 merge: true
-              });
+              }));
             });
+            await Promise.all(answerArr);
             delete question.answers;
             await questionRef.set(question, {
               merge: true
             });
           });
-          payload.configuration.questions = questions;
         }
     
         await publish('ex-gateway', source, { domain, action, command, payload: { ...payload }, user, socketId });
