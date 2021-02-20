@@ -108,14 +108,28 @@ exports.manage = async (event, context, callback) => {
 
         if (questions) {
           questions.forEach(async (question) => {
-            const questionRef = questionCol.doc();
+            let questionRef;
+            if (question.id) {
+              questionRef = questionCol.doc(question.id);
+            } else {
+              questionRef = questionCol.doc();
+            }
             const answerCol = questionRef.collection('answers');
             question.answers.forEach(async (answer) => {
-              const answerRef = answerCol.doc();
-              await answerRef.set(answer);
+              let answerRef;
+              if (answer.id) {
+                answerRef = answerCol.doc(answer.id);
+              } else {
+                answerRef = answerCol.doc();
+              }
+              await answerRef.set(answer, {
+                merge: true
+              });
             });
             delete question.answers;
-            await questionRef.set(question);
+            await questionRef.set(question, {
+              merge: true
+            });
           });
           payload.configuration.questions = questions;
         }
