@@ -73,6 +73,7 @@ exports.manage = async (event, context, callback) => {
             delete question.answers;
             await questionRef.set(question);
           });
+          payload.configuration.questions = questions;
         }
    
         await Promise.all([
@@ -116,6 +117,7 @@ exports.manage = async (event, context, callback) => {
             delete question.answers;
             await questionRef.set(question);
           });
+          payload.configuration.questions = questions;
         }
     
         await publish('ex-gateway', source, { domain, action, command, payload: { ...payload }, user, socketId });
