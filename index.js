@@ -270,7 +270,7 @@ exports.manage = async (event, context, callback) => {
           });
         }
         console.log('====== sending response');
-        await publish('ex-gateway', source, { domain, action, command, payload: { id: payload.id, ...data }, user, socketId });
+        await publish('ex-gateway', source, { domain, action, command, payload: { ...payload, ...data }, user, socketId });
         callback();
       } catch (error) {
         console.log(error);
